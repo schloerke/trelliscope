@@ -117,7 +117,7 @@ run_qunit_tests = function(){
     $("tbody#displaySelectInput tr td").click()
 
     setTimeout(function(){
-      assert.equal($("div.cog-value-td").text(), "Grand Rapids", "First item text, after click is Grand Rapids");
+      assert.equal($("div.cog-value-td").text(), "Crookston", "First item text, after click is Crookston");
 
       i = 5
       fn = function() {
@@ -128,7 +128,7 @@ run_qunit_tests = function(){
           setTimeout(fn, 1000)
         } else {
           setTimeout(function() {
-            assert.equal($("div.cog-value-td").text(), "Crookston", "6th item text, after click is Crookston");
+            assert.equal($("div.cog-value-td").text(), "Waseca", "6th item text, after click is Waseca");
             QUnit.start()
           }, 1000)
         }
