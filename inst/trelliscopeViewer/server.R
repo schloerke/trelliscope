@@ -1,26 +1,10 @@
-library(shiny)
-library(jsonlite) # TODO: make trelliscope depend on this
+library(shiny, warn.conflicts = FALSE)
+# htmlwidgets not required unless panel function is one
+suppressWarnings(require(htmlwidgets, warn.conflicts = FALSE))
+library(jsonlite, warn.conflicts = FALSE)
 
-# connFile <- "../conn.Rdata"
-# vdbDir <- normalizePath(file.path(getwd(), ".."))
-# hostname <- system("hostname", intern = TRUE)
-# things are a little different on glimmer because app can't be in subdirectory
-# if(hostname == "glimmer.rstudio.com") {
 connFile <- "conn.Rdata"
 vdbDir <- getwd()
-# }
-
-if(file.exists(connFile)) {
-   library(trelliscope)
-   vdbConn <- vdbConn(vdbDir)
-   vdbPrefix <- vdbConn$path
-} else {
-   vdbConn <- getOption("vdbConn")
-   vdbPrefix <- vdbConn$path
-}
-message("vdbPrefix is ", vdbPrefix)
-
-options(vdbShinyPrefix = vdbPrefix)
 
 LOGGING <- FALSE
 if(Sys.getenv("TRELLISCOPE_LOGGING") == "true")
@@ -32,6 +16,19 @@ logMsg <- function(...) {
       message(paste(c("* ", text), sep=""))
 }
 
+if(file.exists(connFile)) {
+   library(trelliscope) # TODO: check viewer / package versions match
+   vdbConn <- vdbConn(vdbDir)
+   vdbPrefix <- vdbConn$path
+} else {
+   vdbConn <- getOption("vdbConn")
+   vdbPrefix <- vdbConn$path
+}
+
+logMsg("vdbPrefix is ", vdbPrefix)
+
+options(vdbShinyPrefix = vdbPrefix)
+
 load(file.path(vdbPrefix, "displays/_displayList.Rdata"))
 
 ind <- which(is.na(displayListDF$dataClass))
@@ -40,7 +37,7 @@ if(length(ind) > 0) {
    displayListDF <- displayListDF[-ind,]
 }
 
-source("server/_fns.R")
+source("server/_fns.R", local = TRUE)
 
 shinyServer(function(input, output, session) {
    source("server/currentDisplay.R", local = TRUE)

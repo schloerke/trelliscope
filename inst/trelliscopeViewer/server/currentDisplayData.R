@@ -1,7 +1,7 @@
 
 displayListOutputData <- function(dl) {
    # logMsg("Populating display list")
-   
+
    for(i in seq_along(dl)) {
       dl[[i]]$updated <- as.character(dl[[i]]$updated)
       dl[[i]]$thumb <- paste("<img src =\"", encodePNG(file.path(getOption("vdbConn")$path, "displays", dl[[i]]$group, dl[[i]]$name, "thumb_small.png")), "\" style=\"max-height: 60px; max-width: 80px\">", sep = "")
@@ -20,16 +20,22 @@ displayListOutputData <- function(dl) {
 
 panelLayoutOutputData <- function(x) {
    if(!is.null(x$cdo)) {
-      panelLayout <- x$cdo$state$panelLayout
+      panelLayout <- x$cdo$state$layout
       nrow <- panelLayout$nrow
       if(is.null(nrow))
          nrow <- 1
       ncol <- panelLayout$ncol
       if(is.null(ncol))
          ncol <- 1
-      
-      list(panel_aspect = x$cdo$height / x$cdo$width, 
-         n_panel_labels = length(which(x$cdo$cogInfo$defLabel)),
+
+      labelState <- x$cdo$state$labels
+      if(is.null(labelState)) {
+         nLabels <- length(which(x$cdo$cogInfo$defLabel))
+      } else {
+         nLabels <- length(labelState)
+      }
+      list(panel_aspect = x$cdo$height / x$cdo$width,
+         n_panel_labels = nLabels,
          nrow = nrow, ncol = ncol, cdName = x$cdo$name, cdGroup = x$cdo$group)
    }
 }
@@ -37,7 +43,7 @@ panelLayoutOutputData <- function(x) {
 panelFunctionOutputData <- function(x) {
    if(!is.null(x$cdo)) {
       panelFn <- x$cdo$panelFn
-      list(code = paste(capture.output(dump("panelFn", "")), collapse="\n"), 
+      list(code = paste(capture.output(dump("panelFn", "")), collapse="\n"),
          cdName = x$cdo$name, cdGroup = x$cdo$group)
    }
 }
@@ -46,8 +52,8 @@ panelLabelListOutputData <- function(x) {
    if(!is.null(x$cdo)) {
       cogInfo <- x$cdo$cogInfo
       cogInfo$active <- ""
-      cogInfo$active[cogInfo$defLabel] <- "active"
-      
+      cogInfo$active[cogInfo$name %in% x$cdo$state$labels] <- "active"
+
       ci <- split(cogInfo, cogInfo$group)
       nms <- names(ci)
       # panelKey, condVar, and bsv go first, then sorted
@@ -70,7 +76,7 @@ activeCogListOutputData <- function(x) {
       cogInfo$active[cogInfo$defActive] <- "active"
       cogInfo$selectable <- "selectable"
       cogInfo$selectable[cogInfo$name == "panelKey"] <- ""
-      
+
       ci <- split(cogInfo, cogInfo$group)
       nms <- names(ci)
       # panelKey, condVar, and bsv go first, then sorted
@@ -91,11 +97,11 @@ relatedDisplayListOutputData <- function(x, displayList) {
       curKeySig <- x$cdo$keySig
       curName <- x$cdo$name
       curGroup <- x$cdo$group
-      
+
       # TODO: better logic about what "related" means
       relDisp <- sapply(displayList, function(a)
          !(a$name == curName && a$group == curGroup) && a$keySig == curKeySig)
-      
+
       res <- lapply(displayList[relDisp], function(x) {
          x$updated <- as.character(x$updated)
          img <- paste("<img src =\"", encodePNG(file.path(options()$vdbConn$path, "displays", x$group, x$name, "thumb.png")), "\" style=\"max-height: 60px; max-width: 80px\">", sep = "")
@@ -103,7 +109,7 @@ relatedDisplayListOutputData <- function(x, displayList) {
          x$aspect <- x$height / x$width
          x
       })
-      
+
       names(res) <- NULL
       list(displays = res, cdName = x$cdo$name, cdGroup = x$cdo$group)
    }
@@ -113,7 +119,7 @@ cogTableControlsOutputData <- function(x) {
    # render the entire cognostics table (all possible cognostics)
    # then we will dynamically change which are shown with different
    # choices of active cogs and selected columns
-   
+
    if(!is.null(x$cdo)) {
       # TODO: apply sorting and filtering in filterState, etc.
       ac <- x$cdo$state$activeCog
@@ -124,13 +130,13 @@ cogTableControlsOutputData <- function(x) {
       cogInfo$active[cogInfo$filterable] <- "active"
       # cogInfo$hidden <- "hidden"
       # cogInfo$hidden[cogInfo$name %in% ac] <- ""
-      
+
       cogDF <- x$cdo$cogDatConn
       n <- cogNrow(cogDF)
       curDF <- getCogData(cogDF, seq_len(min(n, 10)))
-      
+
       plotDat <- lapply(cogInfo$name, function(nm) {
-         getUnivarPlotDat(x, name = nm, maxLevels = 100)
+         getUnivarPlotDat(x, name = nm, maxLevels = 100, calledFromFooter = TRUE)
       })
       list(
          data = cogTableBodyData(curDF),
@@ -149,7 +155,8 @@ cogUniFilterControlsOutputData <- function(x) {
    if(!is.null(x$cdo)) {
       cd <- x$cdo$cogInfo
       cd$type[cd$type == "integer"] <- "numeric"
-      list(cogs = subset(cd, filterable), cdName = x$cdo$name, cdGroup = x$cdo$group)
+      # list(cogs = subset(cd, filterable), cdName = x$cdo$name, cdGroup = x$cdo$group)
+      list(cogs = subset(cd, type == "numeric"), cdName = x$cdo$name, cdGroup = x$cdo$group)
    }
 }
 
@@ -163,16 +170,16 @@ cogBiFilterControlsOutputData <- function(x) {
 
 panelPageNavOutputData <- function(x) {
    if(!is.null(x$cdo)) {
-      nrow <- x$cdo$state$panelLayout$nrow
-      ncol <- x$cdo$state$panelLayout$ncol
+      nrow <- x$cdo$state$layout$nrow
+      ncol <- x$cdo$state$layout$ncol
       if(is.null(nrow))
          nrow <- 1
       if(is.null(ncol))
          ncol <- 1
-      
+
       ppp <- nrow * ncol
-      
-      goodIncrements <- c(1, 2, 5, 10, 25, 50, 100, 500, 1000, 10000)   
+
+      goodIncrements <- c(1, 2, 5, 10, 25, 50, 100, 500, 1000, 10000)
       n <- cogNrow(x$cdo$cogDatConn)
       skips <- goodIncrements[goodIncrements < n / 2]
 

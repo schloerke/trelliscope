@@ -35,9 +35,10 @@ function panelLabelListOutputApplyButton() {
       relatedLayout();
       relatedDisplayListOutputApplyButton();
    } else {
-      panelLayoutPreview(parseInt($("#panel-rows").val()), parseInt($("#panel-cols").val()));
+      $("#panel-layout-data").data("nCog", panelLabel.length);
+      panelLayoutPreview(parseInt($("#panel-rows").val()), parseInt($("#panel-cols").val()), panelLabel.length);
       $("#panel-rows").trigger("change");
-      panelLayoutOutputApplyButton();      
+      panelLayoutOutputApplyButton();
    }
 }
 
@@ -53,12 +54,12 @@ function panelLabelListSetFromExposedState() {
    });
    
    if(state) {
-      if(state.panelLabel) {
+      if(state.labels) {
          // console.log(state);
-         if(!(state.panelLabel instanceof Array)) {
-            state.panelLabel = [state.panelLabel];
+         if(!(state.labels instanceof Array)) {
+            state.labels = [state.labels];
          }
-         $.each(state.panelLabel, function(key, value) {
+         $.each(state.labels, function(key, value) {
             $("#panel-labels-select-" + value).addClass("active");
          });
       }      
@@ -66,6 +67,10 @@ function panelLabelListSetFromExposedState() {
 }
 
 function panelLabelListOutputPostRender() {
+   // console.log($(".panel-labels-select.active").length);
+   
+   $("#openModal").modal("hide");
+   
    $.getScript("assets/custom/selectables-panel-labels.js");
    
    // $("#panel-rows").trigger("change");

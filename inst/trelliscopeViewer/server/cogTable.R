@@ -61,7 +61,6 @@ output$cogTableContentOutput <- renderDataLite({
    cogDF <- cogTableCurrentData()
    if(!is.null(cogDF)) {
       logMsg("Updating cog table data")
-      
       n <- cogNrow(cogDF)
       
       pg <- input$cogTablePaginationInput
@@ -124,11 +123,15 @@ getCurCogDat <- function(x, state) {
    if(length(state$sort) > 0) {
       srt <- state$sort
       srtNm <- names(srt)
+      
+      srtNm <- intersect(srtNm, names(x))
+      # TODO: warning if some srtNm are not in names of x?
+      
       if(length(srt) == 1) {
-         orderIndex <- order(x[, srtNm, drop = FALSE], decreasing = grepl("down", srt[[1]]$icon))
+         orderIndex <- order(x[, srtNm, drop = FALSE], decreasing = srt[[1]]$dir == "desc")
       } else {
          orderCols <- lapply(srtNm, function(a) {
-            if(grepl("down", srt[[a]]$icon)) {
+            if(srt[[a]]$dir == "desc") {
                return(-xtfrm(x[,a]))
             } else {
                return(x[,a])

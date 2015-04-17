@@ -59,9 +59,8 @@ makePNG <- function(dat, panelFn = NULL, file, width, height, origWidth = width,
 
                # if there are multiple panels inside of one plot, we can't do this
                if(!(inherits(tmp$x.limits, "list") || inherits(tmp$y.limits, "list"))) {
-
                   plotXLim <- tmp$x.limits
-                  if(is.numeric(plotXLim)) {
+                  if(is.numeric(plotXLim) || inherits(plotXLim, "Date")) {
                      curXLim <- trsCurXLim(lims, dat, plotXLim)
                      if(lims$x$type != "free")
                         tmp$x.limits <- curXLim
@@ -121,7 +120,7 @@ makePNG <- function(dat, panelFn = NULL, file, width, height, origWidth = width,
          pointsize = pointsize)
 
       print(xyplot(NA ~ NA, xlab = "", ylab = "", scales = list(draw = FALSE), panel = function(x, y, ...) panel.text(0.5, 0.5, "no panel")))
-      
+
       dev.off()
    }
 }
