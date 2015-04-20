@@ -1,4 +1,9 @@
 function renderTemplate(objId, data, templateId) {
+
+   console.log(objId)
+   console.log(templateId)
+   console.log(data)
+
    // assumption is that element with objId="id" has associated template
    // content in an element named "id-template"
    // otherwise templateId needs to be provided
