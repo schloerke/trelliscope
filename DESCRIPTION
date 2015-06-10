@@ -1,9 +1,9 @@
 Package: trelliscope
 Type: Package
 Title: Trelliscope
-Version: 0.8.2
-Date: 2015-04-07
-Author: Ryan Hafen
+Version: 0.8.3
+Date: 2015-05-29
+Authors@R: person("Ryan", "Hafen", email = "rhafen@gmail.com", role = c("aut", "cre"))
 Maintainer: Ryan Hafen <rhafen@gmail.com>
 Description: Trelliscope provides a way to create, organize, and view
     multi-panel displays, a collection of which is called a visualization
@@ -15,27 +15,25 @@ Description: Trelliscope provides a way to create, organize, and view
     viewer has the ability to sort or filter the pages based on these
     cognostics.  This is useful for large multi-panel displays where it is not
     possible to view each panel, allowing only panels with interesting features
-    to be presented.  This package also provides a way to meaningfully organize
-    and present these displays in a "lab notebook".
+    to be presented.
+URL: http://tessera.io/docs-trelliscope
+BugReports: https://github.com/tesseradata/trelliscope/issues
 License: BSD_3_clause + file LICENSE
 LazyData: yes
 Depends:
-    R (>= 2.15.1),
     base,
-    datadr (>= 0.7.3),
+    datadr (>= 0.7.5.7),
     lattice (>= 0.20-23),
     ggplot2
 Imports:
     data.table,
-    grid,
     base64enc,
-    knitr,
-    markdown,
-    shiny (>= 0.10.0),
+    shiny (>= 0.12.0),
+    htmlwidgets (>= 0.4.0),
     digest,
-    hexbin,
     jsonlite,
     fastICA,
+    hexbin,
     png
 Suggests:
     Cairo,
